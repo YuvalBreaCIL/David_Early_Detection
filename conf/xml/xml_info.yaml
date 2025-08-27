@@ -1,0 +1,11 @@
+my_keys:
+  root_key: annotation
+  accession_key: accession
+  label_key: label
+  bndbox_key: bndbox
+  dims_key: dims
+  metadata_key: metadata
+
+data:
+  path: /media/breacil/Old_David/David code/early/data/processed_data #/mnt/D/early/data/processed_data
+

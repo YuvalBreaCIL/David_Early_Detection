@@ -1,0 +1,165 @@
+dicom:
+  my_keys:
+    scan_key: scan
+    seg_key: seg
+    metadata_key: metadata
+    label_key: label
+    dcm_data_key: dcm_data
+  modalities:
+    mr: MR
+    pr: PR
+  fields:
+    SOP_instance_UID: SOPInstanceUID
+    acquisition_time: AcquisitionTime
+    slice_location: SliceLocation
+    pixel_array: pixel_array
+    rows: Rows
+    columns: Columns
+  metadata_fields:
+    modalities_in_study: ModalitiesInStudy
+    study_description: StudyDescription
+    series_description: SeriesDescription
+    slice_thickness: SliceThickness
+    spacing_between_slices: SpacingBetweenSlices
+    patient_position: PatientPosition
+    pixel_spacing: PixelSpacing
+  data:
+    benign:
+      label: benign
+      path: /mnt/D/early/dicom_processing/data/unprocessed_data/benign
+      accessions:
+      - 4015008859970
+      - 4015006030114
+      - 4015008872676
+      - 4015007940732
+      - 4015008588643
+      - 4015006757270
+      - 4015007816759
+      - 4015008168549
+      - 4015008168560
+      - 4015008401669
+      - 4015006320496
+      - 4015008358323
+      - 4015008264171
+      - 4015008527151
+      - 4015008200088
+      - 4015008722608
+      - 4015008234718
+      - 4015007766191
+      - 4015007097229
+      - 4015008799571
+      - 4015008799553
+      - 4015007977207
+      - 4015009620354
+      - 4015008583797
+      - 4015008209094
+      - 4015008256275
+      - 4015008339443
+      - 4015008757658
+      - 4015009631904
+      - 4015007961696
+      - 4015008799503
+      - 4015008372149
+      - 4015008381017
+      - 4015008736927
+      - 4015008723604
+      - 4015008348163
+      - 4015008055254
+      - 4015009039614
+      - 4015008784004
+      - 4015008680193
+      - 4015009059511
+      - 4015008772194
+      - 4015008376618
+      - 4015008720009
+      - 4015008960249
+      - 4015009416239
+      - 4015008826297
+      - 4015009653003
+      - 4015008669975
+      - 4015008736648
+      - 4015008762861
+      - 4015008818926
+      - 4015009077025
+    tumor:
+      label: tumor
+      path: /mnt/D/early/dicom_processing/data/unprocessed_data/tumor
+      accessions:
+      - 4015008307464
+      - 4015008570301
+      - 4015008380733
+      - 4015008807900
+      - 4015008300020
+      - 4015007785897
+      - 4015007514489
+      - 4015008045489
+      - 4015007533346
+      - 4015008120759
+      - 4015007763784
+      - 4015007413822
+      - 4015007149070
+      - 4015007127093
+      - 4015007050788
+      - 4015007317792
+      - 4015006751510
+      - 4015006862784
+      - 4015006596915
+      - 4015005937675
+      - 4015006230985
+      - 4015006360344
+      - 4015006247901
+      - 4015005928355
+      - 4015005669466
+      - 4015008053926
+      - 4015008921246
+      - 4015009127454
+      - 4015009093315
+      - 4015009725299
+      - 4015005701288
+      - 4015009235063
+xml:
+  my_keys:
+    root_key: annotation
+    accession_key: accession
+    label_key: label
+    bndbox_key: bndbox
+    dims_key: dims
+    metadata_key: metadata
+  data:
+    path: /mnt/D/early/data/processed_data
+numpy:
+  data:
+    path: /mnt/D/early/data/processed_data
+micro_macro_builder:
+  data:
+    xml_dir: null
+    numpy_dir: null
+    accessions:
+    - 4015008807900
+    - 4015008859970
+    - 4015006030114
+    path: /mnt/D/early/data/model_data
+    micro_name: micro
+    macro_name: macro
+  array_info:
+    macro_shape:
+    - 128
+    - 128
+  transforms:
+    micro:
+      slice_from_array:
+        _target_: my_transforms.SliceFromArray
+        dim: 0
+        slice_num: 1
+      maximum_intensity_projection:
+        _target_: my_transforms.MaximumIntensityProjection
+        axis: 0
+    macro:
+      slice_from_array:
+        _target_: my_transforms.SliceFromArray
+        dim: 0
+        slice_num: 1
+      maximum_intensity_projection:
+        _target_: my_transforms.MaximumIntensityProjection
+        axis: 0
+train: {}

@@ -1,0 +1,2 @@
+class_name: torch.optim.Adam
+learning_rate: 0.0001

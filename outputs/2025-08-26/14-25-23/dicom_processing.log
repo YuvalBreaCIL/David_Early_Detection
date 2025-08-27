@@ -1,0 +1,14 @@
+[2025-08-26 14:41:11,587][pydicom][WARNING] - The value length (24) exceeds the maximum length of 16 allowed for VR SH.
+[2025-08-26 14:44:49,453][pydicom][WARNING] - 'FileDataset.read_encoding' will be removed in v4.0, use 'FileDataset.original_character_set' instead
+[2025-08-26 14:44:49,453][pydicom][WARNING] - 'FileDataset.read_implicit_vr' will be removed in v4.0, use 'FileDataset.original_encoding[0]' instead
+[2025-08-26 14:44:49,453][pydicom][WARNING] - 'FileDataset.read_little_endian' will be removed in v4.0, use 'FileDataset.original_encoding[1]' instead
+[2025-08-26 14:55:04,271][pydicom][WARNING] - 'FileDataset.read_encoding' will be removed in v4.0, use 'FileDataset.original_character_set' instead
+[2025-08-26 14:55:04,272][pydicom][WARNING] - 'FileDataset.read_implicit_vr' will be removed in v4.0, use 'FileDataset.original_encoding[0]' instead
+[2025-08-26 14:55:04,272][pydicom][WARNING] - 'FileDataset.read_little_endian' will be removed in v4.0, use 'FileDataset.original_encoding[1]' instead
+[2025-08-26 16:16:45,754][pydicom][WARNING] - 'FileDataset.read_encoding' will be removed in v4.0, use 'FileDataset.original_character_set' instead
+[2025-08-26 16:16:45,754][pydicom][WARNING] - 'FileDataset.read_implicit_vr' will be removed in v4.0, use 'FileDataset.original_encoding[0]' instead
+[2025-08-26 16:16:45,754][pydicom][WARNING] - 'FileDataset.read_little_endian' will be removed in v4.0, use 'FileDataset.original_encoding[1]' instead
+[2025-08-26 16:18:15,628][pydicom][WARNING] - The value length (24) exceeds the maximum length of 16 allowed for VR SH.
+[2025-08-26 16:18:55,708][pydicom][WARNING] - 'FileDataset.read_encoding' will be removed in v4.0, use 'FileDataset.original_character_set' instead
+[2025-08-26 16:18:55,708][pydicom][WARNING] - 'FileDataset.read_implicit_vr' will be removed in v4.0, use 'FileDataset.original_encoding[0]' instead
+[2025-08-26 16:18:55,708][pydicom][WARNING] - 'FileDataset.read_little_endian' will be removed in v4.0, use 'FileDataset.original_encoding[1]' instead

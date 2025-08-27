@@ -1,0 +1,2 @@
+loss:
+  class_name: torch.nn.functional.cross_entropy

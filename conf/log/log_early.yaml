@@ -1,0 +1,3 @@
+dir_path: /media/breacil/Old_David/David code/early/log_dir/yuval_run #/mnt/D/early/log_dir
+name: early_run_1
+val_interval: 1 # once in how many epochs should we log

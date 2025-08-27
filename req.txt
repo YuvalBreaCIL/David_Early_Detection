@@ -1,0 +1,12 @@
+nibabel
+torch
+pandas
+matplotlib
+monai
+omegaconf
+hydra-core
+pydicom
+scikit-image
+tqdm
+tensorboard
+openpyxl

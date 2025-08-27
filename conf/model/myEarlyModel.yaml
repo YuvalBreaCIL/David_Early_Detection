@@ -1,0 +1,6 @@
+model:
+  class_name: model.MicroMacroModel
+  params:
+    out_channels: 2
+
+pretrained_path:

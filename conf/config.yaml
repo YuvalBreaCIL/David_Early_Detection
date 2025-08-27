@@ -1,0 +1,14 @@
+defaults:
+  - _self_
+  - dicom: dicom_info
+  - xml: xml_info
+  - numpy: numpy_info
+  - micro_macro: micro_macro
+  - model_data: model_data
+  - log: log_early
+  - model: myEarlyModel
+  - loss: cross_entropy
+  - optimizer: adam
+  - training: train_regular
+  
+
