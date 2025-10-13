@@ -190,6 +190,7 @@ def train_one_fold(cfg, dataset, train_idx, test_idx, fold_num):
             manu_id = batch_data[cfg.dicom.my_keys.manufacturer_key].to(device)  # LongTensor
             manu_id = manu_id.long()
 
+
             optimizer.zero_grad()
             # added to include the manufacturer
             # num_manu = len(cfg.model_data.manufacturer)  # למשל ["GE MEDICAL SYSTEMS", "Siemens"]
