@@ -3,6 +3,7 @@ my_keys:
   seg_key: seg
   metadata_key: metadata
   label_key: label
+  manufacturer_key: machine_type
   dcm_data_key: dcm_data
 
 modalities:
@@ -17,6 +18,7 @@ fields:
   rows: Rows
   columns: Columns
 
+
 metadata_fields:
   # the value has to be according to the key in the dicom metadata
   modalities_in_study: ModalitiesInStudy
@@ -26,19 +28,21 @@ metadata_fields:
   spacing_between_slices: SpacingBetweenSlices
   patient_position: PatientPosition
   pixel_spacing: PixelSpacing
+  machine_type: Manufacturer
+
 
 data:
-  benign:
+  benign_old:
     label: benign
-    path: /media/breacil/Old_David/David code/early/data/raw/benign #/mnt/D/early/data/raw/benign
-    accessions:
+    path: /media/breacil/Old_David/David code/early/data/raw/benign  #/media/breacil/Yuval/Early detection/try_for_david_data   #/mnt/D/early/data/raw/benign
+    accessions: #53 benign_old #41 uncomment
       - 4015008859970
-      - 4015006030114
+      - 4015006030114 #
       - 4015008872676
       - 4015007940732
       - 4015008588643
       - 4015006757270
-      - 4015007816759
+      # - 4015007816759 #this is not appear on model_data.yaml 
       - 4015008168549
       - 4015008168560
       - 4015008401669
@@ -74,24 +78,66 @@ data:
       - 4015008680193
       - 4015009059511
       - 4015008772194
-      - 4015008376618
-      - 4015008720009
-      - 4015008960249
-      - 4015009416239
-      - 4015008826297
-      - 4015009653003
-      - 4015008669975
-      - 4015008736648
-      - 4015008762861
-      - 4015008818926
-      - 4015009077025
+      # - 4015008376618
+      # - 4015008720009
+      # - 4015008960249
+      # - 4015009416239
+      # - 4015008826297
+      # - 4015009653003
+      # - 4015008669975
+      # - 4015008736648
+      # - 4015008762861
+      # - 4015008818926
+      # - 4015009077025
+  benign_new:
+    label: benign
+    path: /media/breacil/Data/NEW/Early Detection/data_with_segmentation
+    accessions: # 20 benign_new
       #my addition
-      # - 4015009925198
+      - 4015009925198
+      # # - 4015011433571   #####
+      - 4015011304639
+      - 4015011302328 
+      - 4015011263883
+      - 4015011254983
+      - 4015011195651
+      - 4015011188064
+      - 4015011158795
+      - 4015011127780
+      - 4015011127422
+      - 4015011085026
+      - 4015010978110
+      # # - 4015010964100   #####
+      - 4015010956833
+      # # - 4015010934372   #####
+      - 4015010865904
+      # # - 4015010738269   #####
+      - 4015010718909
+      - 4015010640414
+      - 4015010591540
+      - 4015010552028
+      # # - 4015010510813   #####
+      - 4015010480082
+      - 4015010440996
+      # # - 4015010407578   #####
+      - 4015010173320
+      - 4015009762830
+      - 4015010278857  
+      - 4015009948383
+      # # - 4015010862721   #####
+      - 4015010009824
+      - 4015010512839  
+      - 4015010652090   
+      # # - 4015010316468    #######
+      # #- 4015010135212 ##########
+      - 4015010603982
 
-  tumor:
+
+
+  tumor_old:
     label: tumor
-    path: /media/breacil/Old_David/David code/early/data/raw/tumor #/mnt/D/early/data/raw/tumor
-    accessions:
+    path: /media/breacil/Old_David/David code/early/data/raw/tumor  #/media/breacil/Yuval/Early detection/try_for_david_data #/mnt/D/early/data/raw/tumor
+    accessions: #31 tumor_old
       - 4015008307464
       - 4015008570301
       - 4015008380733
@@ -112,11 +158,11 @@ data:
       - 4015006862784
       - 4015006596915
       - 4015005937675
-      - 4015006230985
+      - 4015006230985 #
       - 4015006360344
       - 4015006247901
       - 4015005928355
-      - 4015005669466
+      # - 4015005669466      #??????deleted files (empty folder)
       - 4015008053926
       - 4015008921246
       - 4015009127454
@@ -124,5 +170,45 @@ data:
       - 4015009725299
       - 4015005701288
       - 4015009235063
+  tumor_new:
+    label: tumor
+    path: /media/breacil/Data/NEW/Early Detection/data_with_segmentation
+    accessions: #20 tumor_new
       #my addition
+      - 4015011285142
+      - 4015011022636
+      - 4015010985667
+      - 4015010954132
+      - 4015010907640
+      - 4015010903652
+      - 4015010840510
+      # # - 4015010352492  # ????
+      # # - 4015007614180 # ### no seg
+      - 4015010307622
+      - 4015010486444
+      # # - 4015010018394 ### no seg, early
+      - 4015010470462
+      # # - 4015011171480 ### no seg, early
+      # # - 4015011069613 ### no seg, early
+      - 4015010916306
+      - 4015010505562
+      - 4015010852491
+      # # - 4015008474806  ### no seg
+      # # - 4015008054695 ### no seg
+      - 4015011462641
+      # # - 4015007853825 ### no seg
+      - 4015010644355
+      # # - 4015008229749 ### no seg
+      - 4015010322301   
+      - 4015010667823
+      - 4015011178817
+      # # - 4015010485951 ### no seg, early
+      # # - 4015006247901 ### no seg
+      # # - 4015008034107 ### no seg
+      - 4015010329982
+      # # - 4015010684466 ### no seg, early 
+      - 4015010282670
+      # # - 4015009409280  ???? no seg 
+      # # - 4015008191695 ### no seg
+      
 

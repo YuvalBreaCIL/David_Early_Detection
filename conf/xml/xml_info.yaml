@@ -2,10 +2,11 @@ my_keys:
   root_key: annotation
   accession_key: accession
   label_key: label
+  manufacturer_key: machine_type
   bndbox_key: bndbox
   dims_key: dims
   metadata_key: metadata
 
 data:
-  path: /media/breacil/Old_David/David code/early/data/processed_data #/mnt/D/early/data/processed_data
+  path: /media/breacil/Yuval/Early detection/try_for_david_data/output_processed_data #/media/breacil/Yuval/Early detection/try_for_david_data/output_for_try_old_data #/media/breacil/Old_David/David code/early/data/processed_data #/mnt/D/early/data/processed_data
 

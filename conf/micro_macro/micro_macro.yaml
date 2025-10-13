@@ -1,13 +1,14 @@
 data:
   accessions:
-    - 4015005669466
+  # All files
+    # - 4015005669466 #all files deleted
     - 4015005701288
     - 4015005928355
     - 4015005937675
     - 4015006030114
     - 4015006230985
     - 4015006247901
-    - 4015006320496
+    - 4015006320496 
     - 4015006360344
     - 4015006596915
     - 4015006751510
@@ -84,21 +85,71 @@ data:
     - 4015009631904
     - 4015009653003
     - 4015009725299
+    - 4015007816759 #added because have been in dicom_info.yaml but not here.
+  # My addition of new files
+    - 4015009925198
+    - 4015011304639
+    - 4015011302328
+    - 4015011263883
+    - 4015011254983
+    - 4015011195651
+    - 4015011188064
+    - 4015011158795
+    - 4015011127780
+    - 4015011127422
+    - 4015011085026
+    - 4015010978110
+    - 4015010956833
+    - 4015010865904
+    - 4015010718909
+    - 4015010640414
+    - 4015010591540
+    - 4015010552028
+    - 4015010480082
+    - 4015010440996
+    - 4015010173320
+    - 4015009762830
+    - 4015010278857  
+    - 4015009948383
+    - 4015010009824
+    - 4015010512839  
+    - 4015010652090  
+    - 4015010603982
+    - 4015011285142
+    - 4015011022636
+    - 4015010985667
+    - 4015010954132
+    - 4015010907640
+    - 4015010903652
+    - 4015010840510
+    - 4015010307622
+    - 4015010486444
+    - 4015010470462
+    - 4015010916306
+    - 4015010505562
+    - 4015010852491
+    - 4015011462641
+    - 4015010644355
+    - 4015010322301   
+    - 4015010667823
+    - 4015011178817
+    - 4015010329982
+    - 4015010282670
 
   # Output path for micro-macro:
-  path: /media/breacil/Old_David/David code/early/data/model_data #/mnt/D/early/data/model_data
+  path: /media/breacil/Yuval/Early detection/try_for_david_data/model_data #/media/breacil/Old_David/David code/early/data/model_data #/mnt/D/early/data/model_data
   micro_name: micro
   macro_name: macro
 
 visualize:
   # path if you want to visualize where the data as an image, if not keep empty
-  path: /media/breacil/Old_David/David code/early/data/visualize #/mnt/D/early/data/visualize
+  path: /media/breacil/Yuval/Early detection/try_for_david_data/visualize #/media/breacil/Old_David/David code/early/data/visualize #/mnt/D/early/data/visualize
 
 
 array_info:
   macro_shape:
-    - 128 # height
-    - 128 # width
+    - 50 # height
+    - 50 # width
 
 
 transforms:

@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from technical_utils import load_obj
 import torch.nn.functional as F
 
-def load_data(dir_path, accessions, classes, micro_name, macro_name, label_name):
+def load_data(cfg, classes, micro_name, macro_name, label_name):
     """
     build this function yourself if you want, notice the data format as a list of dictionaries with micro, macro and label
     as keys
@@ -22,15 +22,22 @@ def load_data(dir_path, accessions, classes, micro_name, macro_name, label_name)
     :return: data in format of list of dictionaries {micro_key: micro, macro_key: macro, label_key: label}
     """
     data = []
-    for accession in accessions:
-        accession_path = f"{dir_path}/{accession}"
-        label_path = f"{accession_path}/{label_name}.xml"
+    groups = [
+        cfg.model_data.train.old,
+        cfg.model_data.train.new,
 
-        tree = ET.parse(label_path)
-        label = classes.index(tree.getroot().text)
-        micro_path = f"{accession_path}/{micro_name}.npy"
-        macro_path = f"{accession_path}/{macro_name}.npy"
-        data.append({micro_name: micro_path, macro_name: macro_path, label_name: label})
+    ]
+
+    for group in groups:
+        for accession in group.accessions:
+            accession_path = f"{group.path}/{accession}"
+            label_path = f"{accession_path}/{label_name}.xml"
+
+            tree = ET.parse(label_path)
+            label = classes.index(tree.getroot().text)
+            micro_path = f"{accession_path}/{micro_name}.npy"
+            macro_path = f"{accession_path}/{macro_name}.npy"
+            data.append({micro_name: micro_path, macro_name: macro_path, label_name: label})
     return data
 
 def train(cfg):
@@ -45,8 +52,8 @@ def train(cfg):
     macro_name= cfg.micro_macro.data.macro_name
     label_name = cfg.dicom.my_keys.label_key
 
-    train_data = load_data(cfg.model_data.train.path, cfg.model_data.train.accessions, classes, micro_name, macro_name, label_name)
-    test_data = load_data(cfg.model_data.test.path, cfg.model_data.test.accessions, classes, micro_name, macro_name, label_name)
+    train_data = load_data(cfg, classes, micro_name, macro_name, label_name)
+    test_data = load_data(cfg, classes, micro_name, macro_name, label_name)
 
     num_benign = sum([d[label_name] == 0 for d in train_data])
     num_tumors = sum([d[label_name] == 1 for d in train_data])
@@ -77,6 +84,7 @@ def train(cfg):
         print(f"epoch {epoch_number + 1}/{cfg.training.num_epochs}")
         model.train()
         epoch_train_loss = 0
+        
         for step, batch_data in tqdm(enumerate(train_loader)):
             micro = batch_data[micro_name].to(device)
             macro = batch_data[macro_name].to(device)

@@ -109,33 +109,65 @@ def main(cfg: DictConfig) -> None:
     xml_dir = cfg.xml.data.path
     numpy_dir = cfg.numpy.data.path
     accessions = [str(accession) for accession in cfg.micro_macro.data.accessions]
-    benign_dir = f"{cfg.micro_macro.data.path}/{cfg.dicom.data.benign.label}"
-    tumor_dir = f"{cfg.micro_macro.data.path}/{cfg.dicom.data.tumor.label}"
-    build_dir(benign_dir)
-    build_dir(tumor_dir)
+    # benign_dir = f"{cfg.micro_macro.data.path}/{cfg.dicom.data.benign.label}"
+    # tumor_dir = f"{cfg.micro_macro.data.path}/{cfg.dicom.data.tumor.label}"
+    # build_dir(benign_dir)
+    # build_dir(tumor_dir)
+    # Build both benign dirs and both tumor dirs
+    benign_dirs = [cfg.dicom.data.benign_old.label, cfg.dicom.data.benign_new.label]
+    tumor_dirs  = [cfg.dicom.data.tumor_old.label, cfg.dicom.data.tumor_new.label]
+
+    for b in benign_dirs:
+        build_dir(f"{cfg.micro_macro.data.path}/{b}")
+    for t in tumor_dirs:
+        build_dir(f"{cfg.micro_macro.data.path}/{t}")
+        
     for accession in accessions:
         xml_path = f"{xml_dir}/{accession}.xml"
+        # The new data is: Accession_A so i will try to catch it too.
+        if not os.path.exists(xml_path):
+            xml_path = f"{xml_dir}/{accession}_A.xml"
         numpy_path = f"{numpy_dir}/{accession}.npy"
+        # The new data is: Accession_A so i will try to catch it too.
+        if not os.path.exists(numpy_path):
+            numpy_path = f"{numpy_dir}/{accession}_A.npy"
         arr = np.load(numpy_path)
         bndboxes = load_bndboxes(xml_path, cfg.xml)
         #TODO: maybe add the case of multiple bndboxes on the same accession, right now we don't support it
         bndbox = bndboxes[0]
         dims, label = bndbox
+        # Extract the manufactor from the XML
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        machine_type = root.findtext("metadata/machine_type") or "Unknown"
+        
         micro, macro = get_micro_macro(arr, dims, cfg.micro_macro)
         micro_macro_dir = f"{cfg.micro_macro.data.path}/{accession}"
+        # Build paths
         build_dir(micro_macro_dir)
         micro_path = f"{micro_macro_dir}/{cfg.micro_macro.data.micro_name}.npy"
         macro_path = f"{micro_macro_dir}/{cfg.micro_macro.data.macro_name}.npy"
         label_path = f"{micro_macro_dir}/{cfg.xml.my_keys.label_key}.xml"
+        manufacturer_path = f"{micro_macro_dir}/{cfg.xml.my_keys.manufacturer_key}.xml"
+
         if cfg.micro_macro.visualize.path != "" and not cfg.micro_macro.visualize.path.isspace():
             visualize_micro_path = f"{cfg.micro_macro.visualize.path}/{label}/{accession}_{cfg.micro_macro.data.micro_name}.png"
             visualize_macro_path = f"{cfg.micro_macro.visualize.path}/{label}/{accession}_{cfg.micro_macro.data.macro_name}.png"
             imwrite(visualize_micro_path, np.interp(micro, (micro.min(), micro.max()), (0, 255)).astype(np.uint8))
             imwrite(visualize_macro_path, np.interp(macro, (macro.min(), macro.max()), (0, 255)).astype(np.uint8))
+        # Create label.xml
         label_element = ET.Element(cfg.xml.my_keys.label_key)
         label_element.text = label
         prettified_xmlStr = prettify(label_element)
         output_file = open(label_path, "w")
+        output_file.write(prettified_xmlStr)
+        output_file.close()
+        
+        # Add manufacturer as xml file
+        manufacturer_element = ET.Element(cfg.xml.my_keys.manufacturer_key)
+        manufacturer_element.text = machine_type
+        prettified_xmlStr = prettify(manufacturer_element)
+        output_file = open(manufacturer_path, "w")
         output_file.write(prettified_xmlStr)
         output_file.close()
         np.save(micro_path, micro)
