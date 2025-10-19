@@ -174,6 +174,7 @@ data:
     label: tumor
     path: /media/breacil/Data/NEW/Early Detection/data_with_segmentation
     accessions: #20 tumor_new
+    #accession with ### - their data in the original folder is: /media/breacil/dor - to sort/EarlyFinal290224/np 
       #my addition
       - 4015011285142
       - 4015011022636
@@ -182,19 +183,19 @@ data:
       - 4015010907640
       - 4015010903652
       - 4015010840510
-      # # - 4015010352492  # ????
-      # # - 4015007614180 # ### no seg
+      - 4015010352492  # siemens I thought there is no seg- but found the post process files in david folder so i use it
+      - 4015007614180 ### I thought there is no seg- but found the post process files in david folder so i use it
       - 4015010307622
       - 4015010486444
-      # # - 4015010018394 ### no seg, early
+      - 4015010018394 ### siemens I thought there is no seg- but found the post process files in david folder so i use it
       - 4015010470462
-      # # - 4015011171480 ### no seg, early
-      # # - 4015011069613 ### no seg, early
+      - 4015011171480 ###siemens I thought there is no seg- but found the post process files in david folder so i use it
+      - 4015011069613 ### siemens I thought there is no seg- but found the post process files in david folder so i use 
       - 4015010916306
       - 4015010505562
       - 4015010852491
-      # # - 4015008474806  ### no seg
-      # # - 4015008054695 ### no seg
+      # - 4015008474806 ### I thought there is no seg- but found the post process files in david folder so i use
+      # - 4015008054695 ### I thought there is no seg- but found the post process files in david folder so i use
       - 4015011462641
       # # - 4015007853825 ### no seg
       - 4015010644355
@@ -202,11 +203,11 @@ data:
       - 4015010322301   
       - 4015010667823
       - 4015011178817
-      # # - 4015010485951 ### no seg, early
+      - 4015010485951 ###I thought there is no seg- but found the post process files in david folder so i use it
       # # - 4015006247901 ### no seg
       # # - 4015008034107 ### no seg
       - 4015010329982
-      # # - 4015010684466 ### no seg, early 
+      - 4015010684466 ### I thought there is no seg- but found the post process files in david folder so i use it
       - 4015010282670
       # # - 4015009409280  ???? no seg 
       # # - 4015008191695 ### no seg

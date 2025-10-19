@@ -91,6 +91,7 @@ train:
       - 4015009725299
       - 4015007149070
       # - 4015008818926
+      - 4015007614180 #GE but appear in 'tumor_new' in dicom_info.yaml
   new:
     path: /media/breacil/Yuval/Early detection/try_for_david_data/model_data
     accessions: #22 samples
@@ -140,6 +141,13 @@ train:
       - 4015011178817
       - 4015010329982
       - 4015010282670
+      - 4015010018394
+      - 4015010352492
+      - 4015011171480
+      - 4015011069613
+      - 4015010485951
+      - 4015010684466
+
 
 
 
