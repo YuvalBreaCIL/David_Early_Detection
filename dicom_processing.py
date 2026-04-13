@@ -7,6 +7,7 @@ import pandas as pd
 from glob import glob
 import matplotlib.pyplot as plt
 from typing import Optional, Any, Mapping, Hashable, List
+from imageio import imwrite
 
 import monai
 from monai.config import print_config
@@ -84,7 +85,9 @@ def create_paths_from_new_data(dicom_dir):
         search_paths = []
         for root, dirs, _ in os.walk(dicom_dir):
             for d in dirs:
-                if "_SUB_Series00" in d and "dyn" not in d:#If there are folders with "_SUB_Series00" in their name
+                if "processed" in d: #if it is the subcm data
+                    search_paths.append(os.path.join(root, d))
+                elif "_SUB_Series00" in d and "dyn" not in d:#If there are folders with "_SUB_Series00" in their name
                     search_paths.append(os.path.join(root, d))
                 elif ")-(" in d and ".." not in d:
                     if ("_Series0500" in d or "_Series0600" in d): #(16124_5_117)-(16124_5_1)_Series0500 or (837_6_117)-(837_6_1)_Series0600 
@@ -109,11 +112,12 @@ def create_paths_from_new_data(dicom_dir):
     print(len(dicom_paths), "DICOM files found (by content)")
     return dicom_paths
 
-def process_paths(paths, dicom_properties, data, MR_data, PR_data, dicom_dir, rotate_new_data=False):
+def process_paths(paths, dicom_properties, data, MR_data, PR_data, dicom_dir, rotate_new_data):
     for path in paths:
             # dcm_file_dataset = pydicom.read_file(path)
             dcm_file_dataset = pydicom.dcmread(path)
             series_description = dcm_file_dataset.SeriesDescription
+            # print (f"series_description:{series_description}")
             if dcm_file_dataset.Modality == dicom_properties.modalities.mr:#if file is mr. mr is the regular scan and pr is the scan with contour
                 # Save a table of the dicom data for extracting metadata from it later
                 if not series_description in data:
@@ -158,7 +162,9 @@ def data_new_format(dicom_properties, dicom_dir, data, MR_data, nii_path, image_
     
     for series_description in data:
         slice_locations = sorted(list(data[series_description][dicom_properties.fields.slice_location]))
+        print (f"not sorted acquisition_times:{list(data[series_description][dicom_properties.fields.acquisition_time])} ")
         acquisition_times = sorted(list(data[series_description][dicom_properties.fields.acquisition_time]))
+        print(f"acquisition_times:{acquisition_times}")
         height = data[series_description][dicom_properties.my_keys.dcm_data_key][dicom_properties.fields.rows].value
         width = data[series_description][dicom_properties.my_keys.dcm_data_key][dicom_properties.fields.columns].value
         
@@ -170,6 +176,15 @@ def data_new_format(dicom_properties, dicom_dir, data, MR_data, nii_path, image_
         for key in MR_data[series_description]:
             slice_location = slice_locations.index(MR_data[series_description][key][dicom_properties.fields.slice_location])
             acquisition_time = acquisition_times.index(MR_data[series_description][key][dicom_properties.fields.acquisition_time])
+            arr = MR_data[series_description][key][dicom_properties.fields.pixel_array]
+            if arr.shape != (height, width):
+                print("Mismatch!",
+                    "series:", series_description,
+                    "key:", key,
+                    "expected:", (height, width),
+                    "got:", arr.shape,
+                    "slice_loc:", MR_data[series_description][key][dicom_properties.fields.slice_location],
+                    "acq_time:", MR_data[series_description][key][dicom_properties.fields.acquisition_time])
             scan[acquisition_time, slice_location,:,:] = MR_data[series_description][key][dicom_properties.fields.pixel_array]
         
         # Load .nii segmentation
@@ -192,7 +207,7 @@ def data_new_format(dicom_properties, dicom_dir, data, MR_data, nii_path, image_
                     # Direct match - use for all time points
                     for t in range(len(acquisition_times)):
                         seg[t] = nii_seg
-                elif nii_seg.shape == (target_3d_shape[2], target_3d_shape[1], target_3d_shape[0]):  # (W, H, Z)
+                elif nii_seg.shape == (target_3d_shape[2], target_3d_shape[1], target_3d_shape[0]) and target_3d_shape[2]!= 512:  # (W, H, Z)
                     nii_seg = nii_seg.transpose(2, 1, 0)  # -> (Z, H, W)
                     for t in range(len(acquisition_times)):
                         seg[t] = nii_seg
@@ -318,6 +333,7 @@ def load_dicom(dicom_properties, accession, nii_paths,dicom_dir, image_only=Fals
             acquisition_time = acquisition_times.index(MR_data[series_description][key][dicom_properties.fields.acquisition_time])
             scan[acquisition_time, slice_location,:,:] = MR_data[series_description][key][dicom_properties.fields.pixel_array]
             if key not in PR_data[series_description] or PR_data[series_description][key] is None:
+                print("now inside raw 335")
                 seg[acquisition_time, slice_location, :, :] = np.zeros((height, width), dtype=np.bool)
             else:
                 contour = PR_data[series_description][key]
@@ -480,13 +496,15 @@ def find_accession_in_nii_paths(accession, nii_paths):
     return None
 @hydra.main(config_path='conf', config_name='config')
 def main(cfg: DictConfig) -> None:
-    nii_paths= create_nii_paths_list("/media/breacil/Results/Early_Detection/DCE segmentations_3DSlicer")
+    nii_paths= create_nii_paths_list("/mnt/breacil/Results/Early_Detection/DCE segmentations_3DSlicer")
      # iterate over all groups in your yaml
     groups = [
         cfg.dicom.data.benign_old,
         cfg.dicom.data.benign_new,
+        cfg.dicom.data.benign_subcm,
         cfg.dicom.data.tumor_old,
         cfg.dicom.data.tumor_new,
+        cfg.dicom.data.tumor_subcm
     ]
 
     for group in groups:
@@ -497,6 +515,10 @@ def main(cfg: DictConfig) -> None:
             # accession= accession+'_A'
             if group in [cfg.dicom.data.benign_new, cfg.dicom.data.tumor_new]:
                 accession = str(accession) + "_A"
+            if group in [cfg.dicom.data.benign_subcm, cfg.dicom.data.tumor_subcm]:
+                accession = str(accession) + "_icrf"
+                
+                
 
             # Check first old accession
             # first_old_accession = accession  # replace with actual ID
@@ -506,14 +528,26 @@ def main(cfg: DictConfig) -> None:
             data = load_dicom(cfg.dicom, accession,nii_paths, f"{group.path}/{accession}")
             print ("finished to load dicom, start to compute scan")
             scan = data[cfg.dicom.my_keys.scan_key]
+            print (f"scan shape:{scan.shape}")
             print ("finished to compute scan, start to compute segmentation")
-            seg = data[cfg.dicom.my_keys.seg_key]
+            if group in [cfg.dicom.data.benign_subcm, cfg.dicom.data.tumor_subcm]:
+                t = 1
+                scan_mip = scan[t].max(axis=0).astype(np.uint8) * 255
+                imwrite(f"/mnt/breacil/Yuval/Early detection/try_for_david_data/fixed_subcm_with_bndbox/scan_t1_MIP_{accession}.png", scan_mip)
+                print ("png exported")
+
+            seg = data[cfg.dicom.my_keys.seg_key] #here: /media/breacil/Data/NEW/Early Detection/data_with_segmentation delete the not 'processed' subfolder
+            
+            print("seg shape:", seg.shape, "dtype:", seg.dtype)
+            print("seg total voxels:", int(seg.sum()))
+            
             print ("finished to compute segmentation, start to load metadate")
             metadata = data[cfg.dicom.my_keys.metadata_key]
             print ("finished to load metadate, take label")
             label = group.label
             print ("finished to load label, take bndbox")
             bndbox = get_bndbox(seg)
+            print (f"bndbox:{bndbox}")
             print ("finished to bndbox label, take xml_dst_path")
             xml_dst_path = f"{cfg.xml.data.path}/{accession}.xml"
 
