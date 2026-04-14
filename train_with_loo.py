@@ -353,6 +353,26 @@ def leave_one_out_cv(cfg):
     num_benign = sum([l == 0 for l in labels])
     num_tumor = sum([l == 1 for l in labels])
 
+    # accession -> data group mapping for export
+    def _acc_set(group_name):
+        group_cfg = cfg.dicom.data.get(group_name, None)
+        if group_cfg is None or group_cfg.accessions is None:
+            return set()
+        return {str(a) for a in group_cfg.accessions}
+
+    group_order = [
+        "tumor_new", "tumor_subcm", "tumor_old",
+        "benign_subcm", "benign_new", "benign_old",
+    ]
+    group_to_accessions = {g: _acc_set(g) for g in group_order}
+
+    def get_data_group(accession):
+        acc = str(accession)
+        for g in group_order:
+            if acc in group_to_accessions[g]:
+                return g
+        return "unknown"
+
     print(f"Total samples: {len(labels)}")
     print(f"Benign: {num_benign}, Tumor: {num_tumor}")
     print(f"Baseline accuracy (always predict majority): {max(num_benign, num_tumor) / len(labels):.4f}")
@@ -366,6 +386,7 @@ def leave_one_out_cv(cfg):
     # ---------- define augmentation transforms ----------
     aug_transform_list = []
     if "augmentation" in cfg.model_data.train and cfg.model_data.train.augmentation is not None:
+        print(f"cfg.model_data.train.augmentation:{cfg.model_data.train.augmentation}")
         aug_transform_list = [
             hydra.utils.instantiate(conf)
             for _, conf in cfg.model_data.train.augmentation.items()
@@ -416,6 +437,7 @@ def leave_one_out_cv(cfg):
         # prepare a row with zeros for all manufacturers*{TP,TN,FP,FN}
         row = {
             "accession": accession,
+            "data_group": get_data_group(accession),
             "manufacturer": manu_id,
             "true_label": t,
             "pred_label": p,
