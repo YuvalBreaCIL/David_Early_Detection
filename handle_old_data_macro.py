@@ -22,7 +22,7 @@ def main(cfg: DictConfig):
             continue
 
         macro_path = os.path.join(folder_path, "macro.npy")
-
+        micro_path = os.path.join(folder_path, "micro.npy")
         if not os.path.exists(macro_path):
             print(f"{folder_name}: macro.npy not found")
             continue
@@ -30,6 +30,9 @@ def main(cfg: DictConfig):
         try:
             macro = np.load(macro_path)
             print(f"{folder_name}: macro shape = {macro.shape}")
+            micro = np.load(micro_path)
+            print(f"{folder_name}: micro shape = {micro.shape}")
+            
 
             if macro.shape != model_shape:
                 h, w = macro.shape
