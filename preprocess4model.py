@@ -125,7 +125,8 @@ def load_bboxes_from_excel( xlsx_path: Union[str, Path],
     # filter to the wanted accession
     row = df.loc[df["accessions"] == acc]
     if row.empty:
-        raise KeyError(f"Accession {acc} not found (or missing bbox values) in {xlsx_path}")
+        #raise KeyError(f"Accession {acc} not found (or missing bbox values) in {xlsx_path}")
+        return []
 
     x_min = int(row.iloc[0]["bbox_x_min"])
     y_min = int(row.iloc[0]["bbox_y_min"])
@@ -143,6 +144,8 @@ def get_bbox_for_accession(
     Returns (bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max) for the given accession.
     """
     bboxes = load_bboxes_from_excel(xlsx_path,accession )
+    if len(bboxes) == 0:
+        return None
     acc = str(accession).strip().replace(".0", "")
     return bboxes
 
@@ -168,20 +171,31 @@ def get_micro_macro(arr, dims, micro_macro,cfg,group, accession):
         zmin_fixed = (Z - 1) - zmax
         zmax_fixed = (Z - 1) - zmin
         # החלפה
-        zmin, zmax = zmin_fixed, zmax_fixed
+        # zmin, zmax = zmin_fixed, zmax_fixed #commented because this flip is not good
         #load xsl and extract values for bnd box 
-        xlsx_path=cfg.dicom.bnd_box_subcm_cases.xslx_path
-        bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max = get_bbox_for_accession(xlsx_path, accession)
-        print(accession, "->", bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max)
-        xmin = bbox_x_min
-        ymin = bbox_y_min
-        xmax = bbox_x_max
-        ymax = bbox_y_max
+        # xlsx_path=cfg.dicom.bnd_box_subcm_cases.xslx_path
+        # results = get_bbox_for_accession(xlsx_path, accession)
+        # if results is None:
+        #     print(f"No bbox for {accession}, skipping subcm bbox logic")
+        #     print(f"Continue to regular bbox logic")
+        # else:
+            # bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max=results
+            # print(accession, "->", bbox_x_min, bbox_y_min, bbox_x_max, bbox_y_max)
+            # xmin = bbox_x_min
+            # ymin = bbox_y_min
+            # xmax = bbox_x_max
+            # ymax = bbox_y_max
         
         
     fig, ax = plt.subplots()
     zmid = (zmin + zmax) // 2
-    ax.imshow(arr[1, zmid], cmap="gray")
+    print(f"len(arr):{len(arr)}")
+    if len(arr)==1:
+        zmid=len(arr[0])//2
+        ax.imshow(arr[0][zmid], cmap="gray")
+
+    else:
+        ax.imshow(arr[1, zmid], cmap="gray")
     ax.set_title(f"z={zmid}")
 
     from matplotlib.patches import Rectangle

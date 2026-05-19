@@ -366,6 +366,21 @@ def leave_one_out_cv(cfg):
     ]
     group_to_accessions = {g: _acc_set(g) for g in group_order}
 
+    def get_subcm_group(accession):
+        acc = str(accession)
+
+        subcm_groups = {
+            "tumor_subcm": cfg.dicom.data.tumor_subcm.accessions,
+            "benign_subcm": cfg.dicom.data.benign_subcm.accessions,
+        }
+
+        for group_name, group_values in subcm_groups.items():
+            if acc in group_values:
+                return group_name
+
+        return None
+    
+
     def get_data_group(accession):
         acc = str(accession)
         for g in group_order:
@@ -393,7 +408,8 @@ def leave_one_out_cv(cfg):
         ]
 
     test_transforms = Compose(base_transform_list)
-    train_transforms = Compose(base_transform_list + aug_transform_list)
+    # train_transforms = Compose(base_transform_list + aug_transform_list)
+    train_transforms = Compose(base_transform_list)
 
     # create both datasets from all_data so LOO indices remain aligned
     dataset_class = load_obj(cfg.model_data.train.dataset.class_name)
@@ -431,6 +447,23 @@ def leave_one_out_cv(cfg):
         print(f"\nManufacturer: {manu_name}")
         print(cm_manu)
         metrics_from_confusion_matrix(cm_manu)
+
+    # --- SubCM confusion matrix & metrics ---
+    # --- SubCM confusion matrix & metrics ---
+    subcm_results = [
+        r for r in results
+        if get_data_group(r[-1]) in {"tumor_subcm", "benign_subcm"}
+    ]
+
+    print("\nSubCM cases only")
+    print(f"Num SubCM samples: {len(subcm_results)}")
+
+    if len(subcm_results) > 0:
+        cm_subcm = compute_confusion_matrix(subcm_results, num_classes=len(classes))
+        print(cm_subcm)
+        metrics_from_confusion_matrix(cm_subcm)
+    else:
+        print("No SubCM samples found in results.")
     
     rows = []
     for (correct, t, p, prob, manu_id, accession) in results:

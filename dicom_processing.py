@@ -70,15 +70,18 @@ def is_dicom_file(path: str) -> bool:
 def create_paths_from_new_data(dicom_dir):
     if not os.path.exists(dicom_dir):
         dicom_dir= dicom_dir.removesuffix("_A")
-    target_folders = ["t1_fl3d_spair_tra_x 4 POST_SUB","t1_fl3d_dixon_tra_p2 x 4 POST_W_SUB"]
+        dicom_dir= dicom_dir.removesuffix("_icrf")
+
+    target_folders = ["t1_fl3d_spair_tra_x_4_POST_SUB_9","t1_fl3d_spair_tra_x_4_POST_SUB_9","t1_fl3d_spair_tra_x_4_POST_SUB","t1_fl3d_spair_tra_x 4 POST_SUB","t1_fl3d_dixon_tra_p2 x 4 POST_W_SUB","t1_fl3d_spair_tra_x_4_POST_SUB_12","t1_fl3d_dixon_tra_p2_x_4_POST_W_SUB_14","t1_fl3d_spair_tra_x_4_POST_SUB_13"]
     search_paths= []
-    # print (f"target_folder is {target_folder}")
-    for folder in target_folders:
-        # full path to that folder
-        target_path = os.path.join(dicom_dir, folder)
-        if os.path.exists(target_path):
-            print(f"Found specific target folder: {folder}")
-            search_paths = [target_path]
+    if not dicom_dir.endswith("_A"):
+                # print (f"target_folder is {target_folder}")
+                for folder in target_folders:
+                    # full path to that folder
+                    target_path = os.path.join(dicom_dir, folder)
+                    if os.path.exists(target_path):
+                        print(f"Found specific target folder: {folder}")
+                        search_paths = [target_path]
 
     # print (f"traget_path is {target_path}")
     if not search_paths: #if there is not t1_fl3d_spair_tra_x 4 POST_SUB folder but there are folders with "_SUB_Series00" in their name
@@ -488,7 +491,7 @@ def find_accession_in_nii_paths(accession, nii_paths):
         The first matching NIfTI path if found, otherwise None.
     """
     accession_str = str(accession).removesuffix("_A")
-
+    accession_str = str(accession).removesuffix("_icrf")
     for path in nii_paths:
         if accession_str in os.path.basename(path):  # check filename
             return path
@@ -516,21 +519,39 @@ def main(cfg: DictConfig) -> None:
             if group in [cfg.dicom.data.benign_new, cfg.dicom.data.tumor_new]:
                 accession = str(accession) + "_A"
             if group in [cfg.dicom.data.benign_subcm, cfg.dicom.data.tumor_subcm]:
-                accession = str(accession) + "_icrf"
+                # accession = str(accession) + "_icrf"
+                accession = str(accession)
                 
-                
+            full_path = f"{group.path}/{accession}"
+
 
             # Check first old accession
             # first_old_accession = accession  # replace with actual ID
             # old_accession_path = f"{cfg.dicom.data.benign.path}/{first_old_accession}"
             # debug_old_data_metadata(cfg.dicom, old_accession_path) #to check if the Spacing Between Slices (0018,0088) and Slice Thickness (0018,0050) are the same 
             # load all relevant data from the dicoms files.
-            data = load_dicom(cfg.dicom, accession,nii_paths, f"{group.path}/{accession}")
+            if "_icrf" in accession:
+                try:
+                    data = load_dicom(cfg.dicom, accession, nii_paths, full_path)
+                except Exception as e:
+                    print(f"Failed with accession='{accession}': {e}")
+                    accession_without_icrf = accession.replace("_icrf", "")
+                    data = load_dicom(
+                        cfg.dicom,
+                        accession_without_icrf,
+                        nii_paths,
+                        full_path
+                    )
+            else:
+                data = load_dicom(cfg.dicom, accession, nii_paths, full_path)
             print ("finished to load dicom, start to compute scan")
             scan = data[cfg.dicom.my_keys.scan_key]
             print (f"scan shape:{scan.shape}")
             print ("finished to compute scan, start to compute segmentation")
-            if group in [cfg.dicom.data.benign_subcm, cfg.dicom.data.tumor_subcm]:
+            if not os.path.exists(full_path):
+                full_path=full_path.replace("_icrf", "")
+
+            if group in [cfg.dicom.data.benign_subcm, cfg.dicom.data.tumor_subcm] and "_icrf" in full_path:
                 t = 1
                 scan_mip = scan[t].max(axis=0).astype(np.uint8) * 255
                 imwrite(f"/mnt/breacil/Yuval/Early detection/try_for_david_data/fixed_subcm_with_bndbox/scan_t1_MIP_{accession}.png", scan_mip)
