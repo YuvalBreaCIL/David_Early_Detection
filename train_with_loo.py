@@ -152,6 +152,8 @@ def load_all_data(cfg, classes, micro_name, macro_name, label_name,
             data.append({
                 micro_name: micro_path,
                 macro_name: macro_path,
+                "micro_path": micro_path,
+                "macro_path": macro_path,
                 label_name: label_idx,
                 manufacturer_name: manu_idx,
                 "accession": accession,
@@ -220,6 +222,8 @@ def load_train_data(cfg, classes, micro_name, macro_name, label_name,
             data.append({
                 micro_name: micro_path,
                 macro_name: macro_path,
+                "micro_path": micro_path,
+                "macro_path": macro_path,
                 label_name: label_idx,
                 manufacturer_name: manu_idx,
                 "accession": accession,
@@ -520,14 +524,32 @@ def compute_gradcam_macro(model,macro,micro,manu_id,fold_num,batch_data,label,pr
 
     out_dir ="/mnt/breacil/Yuval/Early detection/try_for_david_data/gradcam_mcaro_after_relu" #"/media/breacil/Yuval/Early detection/try_for_david_data/gradcam_macro" #os.path.join(os.getcwd(), "gradcam_macro")
     os.makedirs(out_dir, exist_ok=True)
-    out_png = os.path.join(out_dir, f"fold_{fold_num:03d}_acc_{batch_data['accession'][0] if 'accession' in batch_data else 'NA'}.png")
+    accession = _first_batch_value(batch_data, "accession", "NA")
+    out_png = os.path.join(out_dir, f"fold_{fold_num:03d}_acc_{accession}.png")
+    raw_micro_shape = _load_raw_micro_shape(batch_data)
+    roi_bbox = roi_bbox_from_centered_micro(macro.shape[-2:], raw_micro_shape)
+    roi_metrics = gradcam_roi_metrics(cam, roi_bbox)
 
     save_gradcam_png_macro(
         macro=macro,
         cam=cam,
+        roi_bbox=roi_bbox,
         out_path=out_png,
-        title=f"MACRO Grad-CAM | True={int(label.item())} Pred={int(pred.item())} P={prob_pred:.3f}"
+        title=(
+            f"MACRO Grad-CAM | True={int(label.item())} Pred={int(pred.item())} "
+            f"P={prob_pred:.3f} | ROI energy={roi_metrics['cam_energy_in_roi']:.2f} "
+            f"Max in ROI={roi_metrics['max_cam_in_roi']}"
+        )
     )
+
+    append_gradcam_metrics_csv(out_dir, {
+        "fold": fold_num,
+        "accession": accession,
+        "true_label": int(label.item()),
+        "pred_label": int(pred.item()),
+        "pred_prob_of_pred_class": float(prob_pred),
+        **roi_metrics,
+    })
 def gradcam_2d_on_macro(model, macro, micro, manu_id, target_layer, class_idx=None):
     """
     עושה Grad-CAM על ה-MACRO בלבד (כלומר hook על features_macro),
@@ -589,7 +611,97 @@ def gradcam_2d_on_macro(model, macro, micro, manu_id, target_layer, class_idx=No
     return cam_up, pred_class, probs
 
 import matplotlib.pyplot as plt
-def save_gradcam_png_macro(macro, cam, out_path, title="Grad-CAM (macro)"):
+from matplotlib.patches import Rectangle
+
+
+def _first_batch_value(batch_data, key, default=None):
+    if key not in batch_data:
+        return default
+    value = batch_data[key]
+    if isinstance(value, (list, tuple)):
+        return value[0]
+    return value
+
+
+def _load_raw_micro_shape(batch_data):
+    micro_path = _first_batch_value(batch_data, "micro_path")
+    if micro_path is None:
+        return None
+    try:
+        micro_arr = np.load(str(micro_path))
+    except Exception as e:
+        print(f"Could not load raw micro for Grad-CAM ROI bbox from {micro_path}: {e}")
+        return None
+    if micro_arr.ndim < 2:
+        return None
+    return tuple(int(v) for v in micro_arr.shape[-2:])
+
+
+def roi_bbox_from_centered_micro(macro_shape, micro_shape):
+    """
+    Reconstruct the lesion bbox inside the saved macro crop.
+
+    In preprocess4model.get_micro_macro, macro is a fixed 50x50 crop centered on
+    the original bbox center, while micro is the bbox crop after MIP. The saved
+    raw micro height/width therefore gives the bbox size in macro coordinates.
+    """
+    if micro_shape is None:
+        return None
+
+    macro_h, macro_w = [int(v) for v in macro_shape]
+    roi_h = max(1, min(int(micro_shape[0]), macro_h))
+    roi_w = max(1, min(int(micro_shape[1]), macro_w))
+
+    y0 = max(0, (macro_h - roi_h) // 2)
+    x0 = max(0, (macro_w - roi_w) // 2)
+    y1 = min(macro_h, y0 + roi_h)
+    x1 = min(macro_w, x0 + roi_w)
+    return y0, y1, x0, x1
+
+
+def gradcam_roi_metrics(cam, roi_bbox, top_fraction=0.10):
+    hm = cam[0, 0].detach().cpu().numpy()
+    total_heat = float(hm.sum())
+
+    metrics = {
+        "roi_y0": np.nan,
+        "roi_y1": np.nan,
+        "roi_x0": np.nan,
+        "roi_x1": np.nan,
+        "cam_energy_in_roi": np.nan,
+        "top10_cam_overlap_roi": np.nan,
+        "max_cam_in_roi": np.nan,
+    }
+    if roi_bbox is None or total_heat <= 0:
+        return metrics
+
+    y0, y1, x0, x1 = roi_bbox
+    roi_mask = np.zeros_like(hm, dtype=bool)
+    roi_mask[y0:y1, x0:x1] = True
+
+    top_threshold = np.quantile(hm, 1.0 - top_fraction)
+    top_mask = hm >= top_threshold
+    top_overlap = float(np.logical_and(top_mask, roi_mask).sum()) / max(1, int(top_mask.sum()))
+    max_y, max_x = np.unravel_index(int(np.argmax(hm)), hm.shape)
+
+    metrics.update({
+        "roi_y0": y0,
+        "roi_y1": y1,
+        "roi_x0": x0,
+        "roi_x1": x1,
+        "cam_energy_in_roi": float(hm[roi_mask].sum()) / total_heat,
+        "top10_cam_overlap_roi": top_overlap,
+        "max_cam_in_roi": bool(roi_mask[max_y, max_x]),
+    })
+    return metrics
+
+
+def append_gradcam_metrics_csv(out_dir, row):
+    out_csv = os.path.join(out_dir, "gradcam_roi_metrics.csv")
+    pd.DataFrame([row]).to_csv(out_csv, mode="a", index=False, header=not os.path.exists(out_csv))
+
+
+def save_gradcam_png_macro(macro, cam, out_path, roi_bbox=None, title="Grad-CAM (macro)"):
     """
     macro: [1,1,H,W]
     cam:   [1,1,H,W]
@@ -600,6 +712,18 @@ def save_gradcam_png_macro(macro, cam, out_path, title="Grad-CAM (macro)"):
     plt.figure()
     plt.imshow(img, cmap="gray")
     plt.imshow(hm, alpha=0.45)
+    if roi_bbox is not None:
+        y0, y1, x0, x1 = roi_bbox
+        ax = plt.gca()
+        rect = Rectangle(
+            (x0, y0),
+            x1 - x0,
+            y1 - y0,
+            linewidth=2,
+            edgecolor="red",
+            facecolor="none",
+        )
+        ax.add_patch(rect)
     plt.title(title)
     plt.axis("off")
     plt.tight_layout()
